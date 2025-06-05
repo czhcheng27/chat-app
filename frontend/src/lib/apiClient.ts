@@ -69,6 +69,31 @@ const api = {
       return null;
     }
   },
+
+  async put<T>(
+    url: string,
+    data?: any,
+    options?: ToastOptions & AxiosRequestConfig
+  ) {
+    const {
+      successMessage,
+      errorMessage,
+      silent,
+      throwOnError,
+      onError,
+      ...axiosConfig
+    } = options || {};
+    try {
+      const res = await axiosInstance.put<T>(url, data, axiosConfig);
+      if (!silent && successMessage) toast.success(successMessage);
+      return res.data;
+    } catch (error) {
+      if (!silent) handleAxiosError(error, errorMessage);
+      if (onError) onError();
+      if (throwOnError) throw error;
+      return null;
+    }
+  },
 };
 
 export default api;
