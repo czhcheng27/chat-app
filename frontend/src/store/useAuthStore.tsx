@@ -1,11 +1,6 @@
 import { create } from "zustand";
-import { axiosInstance } from "../lib/axios";
-
-interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-}
+import type { AuthUser, LoginData, SignupData } from "../types/auth";
+import api from "../lib/apiClient";
 
 interface AuthState {
   authUser: AuthUser | null;
@@ -14,6 +9,9 @@ interface AuthState {
   isUpdatingProfile: boolean;
   isCheckingAuth: boolean;
   checkAuth: () => Promise<void>;
+  signup: (data: SignupData) => Promise<void>;
+  login: (data: LoginData) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -24,15 +22,62 @@ export const useAuthStore = create<AuthState>((set) => ({
   isCheckingAuth: true,
 
   checkAuth: async () => {
-    try {
-      const res = await axiosInstance.get<AuthUser>("/auth/check");
+    const res = await api.get<AuthUser>("/auth/check", {
+      silent: true, // 不显示 toast
+      onError: () => {
+        set({ authUser: null });
+      },
+    });
 
-      set({ authUser: res.data });
-    } catch (error) {
-      console.log("Error in checkAuth:", error);
+    if (res) {
+      set({ authUser: res });
+    }
+
+    set({ isCheckingAuth: false });
+  },
+
+  signup: async (data: SignupData) => {
+    set({ isSigningUp: true });
+    const res = await api.post<AuthUser>("/auth/signup", data, {
+      successMessage: "Account created successfully",
+      errorMessage: "Signup failed",
+      onError: () => {
+        set({ authUser: null });
+      },
+    });
+    console.log(`signup-res`, res);
+    if (res) {
+      set({ authUser: res });
+    }
+
+    set({ isSigningUp: false });
+  },
+
+  login: async (data: LoginData) => {
+    set({ isLoggingIn: true });
+    const res = await api.post<AuthUser>("/auth/login", data, {
+      successMessage: "Logged in successfully",
+      errorMessage: "Login failed",
+    });
+    console.log(`login-res`, res);
+    if (res) {
+      set({ authUser: res });
+    }
+    set({ isLoggingIn: false });
+  },
+
+  logout: async () => {
+    const res = await api.post<void>("/auth/logout", undefined, {
+      successMessage: "Logged out successfully",
+      errorMessage: "Logout failed",
+      onError: () => {
+        set({ authUser: null });
+      },
+    });
+    console.log(`logout-res`, res);
+    if (res !== null) {
+      // 请求成功，做成功逻辑
       set({ authUser: null });
-    } finally {
-      set({ isCheckingAuth: false });
     }
   },
 }));

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { Loader } from "lucide-react";
+import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
 import SignUpPage from "./pages/SignUpPage";
@@ -50,6 +51,8 @@ const App = () => {
           element={authUser ? <HomePage /> : <Navigate to="/login" />}
         />
       </Routes>
+
+      <Toaster />
     </div>
   );
 };
