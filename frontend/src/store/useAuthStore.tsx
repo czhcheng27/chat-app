@@ -12,6 +12,7 @@ interface AuthState {
   signup: (data: SignupData) => Promise<void>;
   login: (data: LoginData) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (data: object) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -45,7 +46,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ authUser: null });
       },
     });
-    console.log(`signup-res`, res);
     if (res) {
       set({ authUser: res });
     }
@@ -59,7 +59,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       successMessage: "Logged in successfully",
       errorMessage: "Login failed",
     });
-    console.log(`login-res`, res);
     if (res) {
       set({ authUser: res });
     }
@@ -74,10 +73,22 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ authUser: null });
       },
     });
-    console.log(`logout-res`, res);
     if (res !== null) {
       // 请求成功，做成功逻辑
       set({ authUser: null });
     }
+  },
+
+  updateProfile: async (data) => {
+    set({ isUpdatingProfile: true });
+    const res = await api.put<AuthUser>("/auth/update-profile", data, {
+      successMessage: "Profile updated successfully",
+      errorMessage: "Failed to update profile",
+      onError: () => {
+        set({ authUser: null });
+      },
+    });
+    if (res) set({ authUser: res });
+    set({ isUpdatingProfile: false });
   },
 }));
