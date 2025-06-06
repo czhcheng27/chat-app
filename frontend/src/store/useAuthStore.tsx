@@ -1,19 +1,6 @@
 import { create } from "zustand";
-import type { AuthUser, LoginData, SignupData } from "../types/auth";
+import type { AuthState, AuthUser, LoginData, SignupData } from "../types/auth";
 import api from "../lib/apiClient";
-
-interface AuthState {
-  authUser: AuthUser | null;
-  isSigningUp: boolean;
-  isLoggingIn: boolean;
-  isUpdatingProfile: boolean;
-  isCheckingAuth: boolean;
-  checkAuth: () => Promise<void>;
-  signup: (data: SignupData) => Promise<void>;
-  login: (data: LoginData) => Promise<void>;
-  logout: () => Promise<void>;
-  updateProfile: (data: object) => Promise<void>;
-}
 
 export const useAuthStore = create<AuthState>((set) => ({
   authUser: null,
@@ -21,6 +8,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoggingIn: false,
   isUpdatingProfile: false,
   isCheckingAuth: true,
+  onlineUsers: [],
 
   checkAuth: async () => {
     const res = await api.get<AuthUser>("/auth/check", {
