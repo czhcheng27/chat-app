@@ -1,14 +1,19 @@
 import { create } from "zustand";
+import { io } from "socket.io-client";
 import type { AuthState, AuthUser, LoginData, SignupData } from "../types/auth";
 import api from "../lib/apiClient";
 
-export const useAuthStore = create<AuthState>((set) => ({
+const BASE_URL =
+  import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
+
+export const useAuthStore = create<AuthState>((set, get) => ({
   authUser: null,
   isSigningUp: false,
   isLoggingIn: false,
   isUpdatingProfile: false,
   isCheckingAuth: true,
   onlineUsers: [],
+  socket: null,
 
   checkAuth: async () => {
     const res = await api.get<AuthUser>("/auth/check", {
@@ -20,6 +25,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     if (res) {
       set({ authUser: res });
+      get().connectSocket();
     }
 
     set({ isCheckingAuth: false });
@@ -36,6 +42,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
     if (res) {
       set({ authUser: res });
+      get().connectSocket();
     }
 
     set({ isSigningUp: false });
@@ -49,6 +56,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
     if (res) {
       set({ authUser: res });
+      get().connectSocket();
     }
     set({ isLoggingIn: false });
   },
@@ -64,6 +72,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (res !== null) {
       // 请求成功，做成功逻辑
       set({ authUser: null });
+      get().disconnectSocket();
     }
   },
 
@@ -78,5 +87,27 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
     if (res) set({ authUser: res });
     set({ isUpdatingProfile: false });
+  },
+
+  connectSocket: () => {
+    const { authUser } = get();
+    if (!authUser || get().socket?.connected) return;
+
+    const socket = io(BASE_URL, {
+      query: {
+        userId: authUser._id,
+      },
+    });
+    socket.connect();
+    set({ socket: socket });
+
+    socket.on("getOnlineUsers", (userIds) => {
+      set({ onlineUsers: userIds });
+    });
+  },
+
+  disconnectSocket: () => {
+    const socket = get().socket;
+    if (socket?.connected) socket.disconnect();
   },
 }));

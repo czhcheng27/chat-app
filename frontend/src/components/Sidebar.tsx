@@ -7,7 +7,6 @@ import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 const Sidebar = () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } =
     useChatStore();
-  console.log(`selectedUser`, selectedUser, "users", users);
   const { onlineUsers } = useAuthStore();
 
   useEffect(() => {

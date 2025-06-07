@@ -1,4 +1,7 @@
+import { Socket } from "socket.io-client";
+
 export interface AuthState {
+  socket: Socket | null;
   authUser: AuthUser | null;
   isSigningUp: boolean;
   isLoggingIn: boolean;
@@ -10,6 +13,8 @@ export interface AuthState {
   login: (data: LoginData) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: object) => Promise<void>;
+  connectSocket: () => void;
+  disconnectSocket: () => void;
 }
 
 export interface AuthUser {
