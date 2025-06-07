@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
-import { LogOut, MessageSquare, Settings, User } from "lucide-react";
+import { LogOut, MessageSquare, Settings, User, Check } from "lucide-react";
+import { useThemeStore } from "../store/useThemeStore";
+import { THEMES } from "../constants/theme";
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
+  const { theme, setTheme } = useThemeStore();
 
   return (
     <header
@@ -25,16 +28,45 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link
-              to={"/settings"}
-              className={`
-              btn btn-sm gap-2 transition-colors
-              
-              `}
-            >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Settings</span>
-            </Link>
+            <div className={`dropdown dropdown-hover dropdown-end block`}>
+              <div tabIndex={0} className="btn btn-sm m-1">
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Settings</span>
+              </div>
+              <div
+                tabIndex={0}
+                className="dropdown-content menu bg-base-200 text-base-content rounded-box h-[30.5rem] max-h-[calc(100vh-8.6rem)] overflow-y-auto border border-white/5 shadow-2xl outline-1 outline-black/5"
+              >
+                <ul className="menu">
+                  <li className="menu-title text-xs">Theme</li>
+                  {THEMES.map((t) => (
+                    <li key={t}>
+                      <button
+                        onClick={() => setTheme(t)}
+                        className="gap-3 px-2"
+                      >
+                        <div
+                          data-theme={t}
+                          className="min-w-4.5 bg-base-100 grid shrink-0 grid-cols-2 gap-0.5 rounded-md p-1 shadow-sm"
+                        >
+                          <div className="bg-base-content size-1 rounded-full"></div>
+                          <div className="bg-primary size-1 rounded-full"></div>
+                          <div className="bg-secondary size-1 rounded-full"></div>
+                          <div className="bg-accent size-1 rounded-full"></div>
+                        </div>
+                        <div className="w-32 truncate">{t}</div>
+                        {t === theme ? (
+                          <Check
+                            className="absolute right-1"
+                            style={{ width: 16, height: 16 }}
+                          />
+                        ) : null}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
 
             {authUser && (
               <>
