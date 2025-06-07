@@ -2,9 +2,7 @@ import { create } from "zustand";
 import { io } from "socket.io-client";
 import type { AuthState, AuthUser, LoginData, SignupData } from "../types/auth";
 import api from "../lib/apiClient";
-
-const BASE_URL =
-  import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
+import { BASE_URL } from "../lib/axios";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   authUser: null,
