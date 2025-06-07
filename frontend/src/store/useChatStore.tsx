@@ -2,6 +2,7 @@ import { create } from "zustand";
 import api from "../lib/apiClient";
 import type { ChatState, Message } from "../types/chat";
 import type { AuthUser } from "../types/auth";
+import { useAuthStore } from "./useAuthStore";
 
 export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
@@ -31,6 +32,30 @@ export const useChatStore = create<ChatState>((set, get) => ({
       messageData
     );
     if (res) set({ messages: [...messages, res] });
+  },
+
+  subscribeToMessages: () => {
+    const { selectedUser } = get();
+    if (!selectedUser) return;
+
+    const socket = useAuthStore.getState().socket;
+
+    if (!socket) return;
+
+    socket.on("newMessage", (newMessage: Message) => {
+      const isMessageSentFromSelectedUser =
+        newMessage.senderId === selectedUser._id;
+      if (!isMessageSentFromSelectedUser) return;
+
+      set({
+        messages: [...get().messages, newMessage],
+      });
+    });
+  },
+
+  unsubscribeFromMessages: () => {
+    const socket = useAuthStore.getState().socket;
+    socket && socket.off("newMessage");
   },
 
   setSelectedUser: (selectedUser) => set({ selectedUser }),
