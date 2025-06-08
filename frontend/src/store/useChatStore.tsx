@@ -11,6 +11,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
 
+  setUsers: (users: AuthUser[]) => set({ users }),
+
   getUsers: async () => {
     set({ isUsersLoading: true });
     const res = await api.get<AuthUser[]>("/messages/users");

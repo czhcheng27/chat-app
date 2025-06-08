@@ -6,6 +6,7 @@ export interface ChatState {
   selectedUser: AuthUser | null;
   isUsersLoading: boolean;
   isMessagesLoading: boolean;
+  setUsers: (data: Array<AuthUser>) => void;
   getUsers: () => Promise<void>;
   getMessages: (data: string) => Promise<void>;
   sendMessage: (data: SendMsg) => Promise<void>;
