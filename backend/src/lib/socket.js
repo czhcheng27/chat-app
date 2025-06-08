@@ -1,6 +1,8 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+import User from "../models/user.model.js";
+import Message from "../models/message.model.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -18,23 +20,36 @@ export function getReceiverSocketId(userId) {
 // used to store online users
 const userSocketMap = {}; // {userId: socketId}
 
-io.on("connection", (socket) => {
+// emit helper
+async function emitOnlineUsers() {
+  const onlineUserIds = Object.keys(userSocketMap);
+
+  try {
+    const onlineUsers = await User.find({
+      _id: { $in: onlineUserIds },
+    }).select("-password");
+
+    io.emit("getOnlineUsers", onlineUsers);
+  } catch (error) {
+    console.error("Failed to emit online users:", error);
+  }
+}
+
+io.on("connection", async (socket) => {
   console.log("A user connected", socket.id);
 
   const userId = socket.handshake.query.userId;
   if (userId) userSocketMap[userId] = socket.id;
 
-  // io.emit() is used to send events to all the connected clients
-  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  await emitOnlineUsers();
 
   socket.on("disconnect", () => {
     console.log("A user disconnected", socket.id);
     delete userSocketMap[userId];
 
     setTimeout(() => {
-      // 如果用户已经重新连接了，就不 emit，为了优化用户列表在线状态的抖动
       if (userSocketMap[userId]) return;
-      io.emit("getOnlineUsers", Object.keys(userSocketMap));
+      emitOnlineUsers();
     }, 1500);
   });
 });

@@ -20,7 +20,7 @@ const ChatHeader = () => {
               />
               {selectedUser?.isOnline && (
                 <span
-                  className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 size-3 bg-green-500 
+                  className="absolute bottom-1 right-1 translate-x-1/4 translate-y-1/4 size-3 bg-green-500 
         rounded-full ring-2 ring-zinc-900"
                 />
               )}

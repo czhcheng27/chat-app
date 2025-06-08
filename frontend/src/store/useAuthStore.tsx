@@ -102,15 +102,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     socket.connect();
     set({ socket });
 
-    socket.on("getOnlineUsers", (onlineUserIds) => {
+    socket.on("getOnlineUsers", (onlineUsers: AuthUser[]) => {
       const { users, setUsers } = useChatStore.getState();
-      // 更新状态
-      set({ onlineUsers: onlineUserIds });
 
-      const sorted = [...users]
-        .map((u) => ({
-          ...u,
-          isOnline: onlineUserIds.includes(u._id),
+      // 将新用户合并进去（如果之前列表中没有）
+      const mergedUsers = [...users];
+      onlineUsers.forEach((user) => {
+        if (user._id === authUser._id) return; // 跳过自己
+        const existing = users.find((u) => u._id === user._id);
+        if (!existing) mergedUsers.push(user);
+      });
+
+      const updated = mergedUsers
+        .map((user) => ({
+          ...user,
+          isOnline: onlineUsers.some((u) => u._id === user._id),
         }))
         .sort((a, b) => {
           if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
@@ -126,7 +132,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           return a.fullName.localeCompare(b.fullName);
         });
 
-      setUsers(sorted);
+      set({ onlineUsers: onlineUsers.map((u) => u._id) });
+      setUsers(updated);
     });
   },
 
