@@ -3,6 +3,7 @@ import { Users } from "lucide-react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
+import { formatLastMessageTime } from "../lib/utils";
 
 const Sidebar = () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } =
@@ -46,7 +47,7 @@ const Sidebar = () => {
 
       <div className="overflow-y-auto w-full py-3">
         {filteredUsers.map((user) => {
-          const { _id, isOnline, fullName, profilePic } = user;
+          const { _id, isOnline, fullName, profilePic, lastMessageAt } = user;
           return (
             <button
               key={_id}
@@ -81,6 +82,10 @@ const Sidebar = () => {
                 <div className="text-sm text-zinc-400">
                   {isOnline ? "Online" : "Offline"}
                 </div>
+              </div>
+
+              <div className="hidden lg:block ml-auto">
+                {formatLastMessageTime(lastMessageAt)}
               </div>
             </button>
           );
