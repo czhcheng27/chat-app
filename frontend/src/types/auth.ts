@@ -23,6 +23,8 @@ export interface AuthUser {
   email: string;
   profilePic: string;
   createdAt: string;
+  isOnline: boolean;
+  lastMessageAt: string;
 }
 
 export interface SignupData {

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { io } from "socket.io-client";
 import type { AuthState, AuthUser, LoginData, SignupData } from "../types/auth";
 import api from "../lib/apiClient";
+import { useChatStore } from "./useChatStore";
 
 const BASE_URL =
   import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
@@ -99,10 +100,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       },
     });
     socket.connect();
-    set({ socket: socket });
+    set({ socket });
 
-    socket.on("getOnlineUsers", (userIds) => {
-      set({ onlineUsers: userIds });
+    socket.on("getOnlineUsers", (onlineUserIds) => {
+      const { users, setUsers } = useChatStore.getState();
+      // 更新状态
+      set({ onlineUsers: onlineUserIds });
+
+      const sorted = [...users]
+        .map((u) => ({
+          ...u,
+          isOnline: onlineUserIds.includes(u._id),
+        }))
+        .sort((a, b) => {
+          if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
+
+          const aTime = a.lastMessageAt
+            ? new Date(a.lastMessageAt).getTime()
+            : 0;
+          const bTime = b.lastMessageAt
+            ? new Date(b.lastMessageAt).getTime()
+            : 0;
+          if (aTime !== bTime) return bTime - aTime;
+
+          return a.fullName.localeCompare(b.fullName);
+        });
+
+      setUsers(sorted);
     });
   },
 
