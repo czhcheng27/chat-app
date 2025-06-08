@@ -30,8 +30,13 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("A user disconnected", socket.id);
     delete userSocketMap[userId];
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+    setTimeout(() => {
+      // 如果用户已经重新连接了，就不 emit，为了优化用户列表在线状态的抖动
+      if (userSocketMap[userId]) return;
+      io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    }, 1500);
   });
 });
 
-export { io, app, server };
+export { io, app, server, userSocketMap };
