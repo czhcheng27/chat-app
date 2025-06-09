@@ -13,6 +13,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setUsers: (users: AuthUser[]) => set({ users }),
 
+  setSelectedUser: (selectedUser) => {
+    const { users } = get();
+    // 清除 unreadCount
+    const updatedUsers = users.map((user) =>
+      user._id === selectedUser?._id ? { ...user, unreadCount: 0 } : user
+    );
+
+    set({
+      selectedUser,
+      users: updatedUsers,
+    });
+  },
+
   getUsers: async () => {
     set({ isUsersLoading: true });
     const res = await api.get<AuthUser[]>("/messages/users");
@@ -22,8 +35,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   getMessages: async (userId) => {
     set({ isMessagesLoading: true });
+
+    // 1. 请求聊天记录
     const res = await api.get<Message[]>(`/messages/${userId}`);
     res && set({ messages: res });
+
+    // 2. 同时将该用户发来的消息标记为已读
+    await api.patch(`/messages/mark-as-read/${userId}`);
+
     set({ isMessagesLoading: false });
   },
 
@@ -59,6 +78,4 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const socket = useAuthStore.getState().socket;
     socket && socket.off("newMessage");
   },
-
-  setSelectedUser: (selectedUser) => set({ selectedUser }),
 }));

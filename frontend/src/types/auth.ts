@@ -25,6 +25,7 @@ export interface AuthUser {
   createdAt: string;
   isOnline: boolean;
   lastMessageAt: string;
+  unreadCount: number;
 }
 
 export interface SignupData {
