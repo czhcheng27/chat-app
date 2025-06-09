@@ -10,10 +10,16 @@ import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
+import { useChatStore } from "./store/useChatStore";
 
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  const { socket, authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  const { initMessageListener } = useChatStore();
   const { theme } = useThemeStore();
+
+  useEffect(() => {
+    socket && initMessageListener();
+  }, [socket]);
 
   useEffect(() => {
     checkAuth();
