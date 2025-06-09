@@ -20,8 +20,8 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="container mx-auto pt-20">
-      <div className="max-w-2xl mx-auto p-4 py-8">
+    <div className="container mx-auto">
+      <div className="max-w-2xl mx-auto">
         <div className="bg-base-300 rounded-xl p-6 space-y-8">
           <div className="text-center">
             <h1 className="text-2xl font-semibold ">Profile</h1>
@@ -43,13 +43,12 @@ const ProfilePage = () => {
                   absolute bottom-0 right-0 
                   bg-base-content hover:scale-105
                   p-2 rounded-full cursor-pointer 
-                  transition-all duration-200
                   ${
                     isUpdatingProfile ? "animate-pulse pointer-events-none" : ""
                   }
                 `}
               >
-                <Camera className="w-5 h-5 text-base-200" />
+                <Camera className="w-5 h-5 text-base-200 relative" />
                 <input
                   type="file"
                   id="avatar-upload"
@@ -98,7 +97,9 @@ const ProfilePage = () => {
               </div>
               <div className="flex items-center justify-between py-2">
                 <span>Account Status</span>
-                <span className="text-green-500">Active</span>
+                <button className="btn btn-sm btn-active btn-success bg-green-500">
+                  Active
+                </button>
               </div>
             </div>
           </div>
