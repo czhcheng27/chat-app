@@ -55,27 +55,30 @@ export const useChatStore = create<ChatState>((set, get) => ({
     if (res) set({ messages: [...messages, res] });
   },
 
-  subscribeToMessages: () => {
-    const { selectedUser } = get();
-    if (!selectedUser) return;
-
+  initMessageListener: () => {
     const socket = useAuthStore.getState().socket;
-
     if (!socket) return;
 
+    // 防止重复监听
+    socket.off("newMessage");
+
     socket.on("newMessage", (newMessage: Message) => {
-      const isMessageSentFromSelectedUser =
-        newMessage.senderId === selectedUser._id;
-      if (!isMessageSentFromSelectedUser) return;
+      const { selectedUser, messages, users } = get();
+      console.log(`newMessage`, newMessage, "selectedUser");
+      const isFromSelectedUser = selectedUser?._id === newMessage.senderId;
 
-      set({
-        messages: [...get().messages, newMessage],
-      });
+      if (isFromSelectedUser) {
+        // 正在和这个用户聊天，追加消息
+        set({ messages: [...messages, newMessage] });
+      } else {
+        // 更新 sidebar 的 unreadCount
+        const updatedUsers = users.map((user) =>
+          user._id === newMessage.senderId
+            ? { ...user, unreadCount: (user.unreadCount || 0) + 1 }
+            : user
+        );
+        set({ users: updatedUsers });
+      }
     });
-  },
-
-  unsubscribeFromMessages: () => {
-    const socket = useAuthStore.getState().socket;
-    socket && socket.off("newMessage");
   },
 }));
