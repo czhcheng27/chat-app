@@ -1,12 +1,18 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { LogOut, MessageSquare, Settings, User, Check } from "lucide-react";
+import ProfilePage from "../pages/ProfilePage";
 import { useThemeStore } from "../store/useThemeStore";
 import { THEMES } from "../constants/theme";
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
+
+  const openLogoutModal = (id: string) => {
+    const modal = document.getElementById(id) as HTMLDialogElement;
+    modal?.showModal();
+  };
 
   return (
     <header
@@ -31,7 +37,7 @@ const Navbar = () => {
             <div className={`dropdown dropdown-hover dropdown-end block`}>
               <div tabIndex={0} className="btn btn-sm m-1">
                 <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">Settings</span>
+                <span className="hidden sm:inline">Theme</span>
               </div>
               <div
                 tabIndex={0}
@@ -69,21 +75,69 @@ const Navbar = () => {
             </div>
 
             {authUser && (
-              <>
-                <Link to={"/profile"} className={`btn btn-sm gap-2`}>
-                  <User className="size-5" />
-                  <span className="hidden sm:inline">Profile</span>
-                </Link>
-
-                <button
-                  className="flex gap-2 items-center cursor-pointer"
-                  onClick={logout}
+              <div className="dropdown dropdown-hover dropdown-center relative overflow-visible mr-3">
+                <div className="flex items-center gap-2">
+                  <img
+                    tabIndex={1}
+                    src={authUser?.profilePic || "/avatar.png"}
+                    alt={authUser?.fullName}
+                    className="rounded-full object-cover w-10 h-10 cursor-pointer"
+                  />
+                  <div className="max-w-[12ch] truncate overflow-hidden whitespace-nowrap text-right block">
+                    {authUser?.fullName.toLocaleUpperCase()}
+                  </div>
+                </div>
+                <ul
+                  tabIndex={1}
+                  className="dropdown-content menu mt-0.5 bg-base-200 rounded-box z-1 w-full border-white/5 shadow-2xl"
                 >
-                  <LogOut className="size-5" />
-                  <span className="hidden sm:inline">Logout</span>
-                </button>
-              </>
+                  <li onClick={() => openLogoutModal("navbar_profile_modal")}>
+                    <a className="pl-1">
+                      <User className="size-4" />
+                      Profile
+                    </a>
+                  </li>
+                  <li onClick={() => openLogoutModal("navbar_logout_modal")}>
+                    <a className="pl-1">
+                      <LogOut className="size-4" />
+                      Logout
+                    </a>
+                  </li>
+                </ul>
+              </div>
             )}
+
+            {/* Profile Modal Content */}
+            <dialog id="navbar_profile_modal" className="modal transition-none">
+              <div className="modal-box p-8 max-w-3xl max-h-[80vh] overflow-y-auto">
+                <ProfilePage />
+              </div>
+              <form method="dialog" className="modal-backdrop">
+                <button>close</button>
+              </form>
+            </dialog>
+
+            {/* Logout Modal Content */}
+            <dialog id="navbar_logout_modal" className="modal transition-none">
+              <div className="modal-box">
+                <h3 className="font-bold text-lg">Logout!</h3>
+                <p className="py-4">Are you sure to log out?</p>
+                <div className="modal-action">
+                  <form method="dialog">
+                    <button className="btn btn-sm">Cancel</button>
+                    <button
+                      className="btn btn-sm btn-error ml-2"
+                      onClick={logout}
+                    >
+                      Logout
+                    </button>
+                  </form>
+                </div>
+              </div>
+              <form method="dialog" className="modal-backdrop">
+                <button>close</button>
+              </form>
+            </dialog>
           </div>
         </div>
       </div>
