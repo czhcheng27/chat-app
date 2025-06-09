@@ -49,24 +49,36 @@ export const getUsersForSidebar = async (req, res) => {
      * 里做这个处理的话，那么就只有在 getOnlineUsers 发生变化时才会拿到正确的
      * isOnline 等状态，当前页面刷新时就只返回最基础的数据，所以要在此处也加上处理
      */
-    // 把每个用户对象附加上 lastMessageAt
-    const usersWithTimestamp = users
-      .map((user) => ({
-        ...user.toObject(),
-        lastMessageAt: messageTimeMap[user._id.toString()] || null,
-        isOnline: Object.keys(userSocketMap).includes(user._id.toString()),
-      }))
-      .sort((a, b) => {
-        if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
+    /**
+     * 新增字段：统计 unreadCount
+     */
+    const usersWithExtras = await Promise.all(
+      users.map(async (user) => {
+        const unreadCount = await Message.countDocuments({
+          senderId: user._id,
+          receiverId: loggedInUserId,
+          isRead: false,
+        });
 
-        const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
-        const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
-        if (aTime !== bTime) return bTime - aTime;
+        return {
+          ...user.toObject(),
+          lastMessageAt: messageTimeMap[user._id.toString()] || null,
+          isOnline: Object.keys(userSocketMap).includes(user._id.toString()),
+          unreadCount,
+        };
+      })
+    );
+    const sortedUsers = usersWithExtras.sort((a, b) => {
+      if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
 
-        return a.fullName.localeCompare(b.fullName);
-      });
+      const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      if (aTime !== bTime) return bTime - aTime;
 
-    res.status(200).json(usersWithTimestamp);
+      return a.fullName.localeCompare(b.fullName);
+    });
+
+    res.status(200).json(sortedUsers);
   } catch (error) {
     console.error("Error in getUsersForSidebar: ", error.message);
     res.status(500).json({ error: "Internal server error" });
@@ -110,6 +122,7 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text,
       image: imageUrl,
+      isRead: false,
     });
 
     await newMessage.save();
@@ -122,6 +135,27 @@ export const sendMessage = async (req, res) => {
     res.status(201).json(newMessage);
   } catch (error) {
     console.log("Error in sendMessage controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const markMessagesAsRead = async (req, res) => {
+  try {
+    const { id: selectedUserId } = req.params;
+    const loggedInUserId = req.user._id;
+
+    await Message.updateMany(
+      {
+        senderId: selectedUserId, // 对方发的消息
+        receiverId: loggedInUserId, // 当前用户收到的消息
+        isRead: false,
+      },
+      { $set: { isRead: true } }
+    );
+
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Error marking messages as read:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
