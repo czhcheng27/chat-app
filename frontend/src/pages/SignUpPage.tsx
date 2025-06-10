@@ -10,6 +10,7 @@ import {
   MessageSquare,
   User,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import AuthImagePattern from "../components/AuthImagePattern";
 import { useAuthStore } from "../store/useAuthStore";
 import type { SignupData } from "../types/auth";
@@ -24,14 +25,17 @@ const SignUpPage = () => {
 
   const { signup, isSigningUp } = useAuthStore();
 
+  const { t } = useTranslation();
+
   const validateForm = () => {
-    if (!formData.fullName.trim()) return toast.error("Full name is required");
-    if (!formData.email.trim()) return toast.error("Email is required");
+    if (!formData.fullName.trim())
+      return toast.error(t("Full name is required"));
+    if (!formData.email.trim()) return toast.error(t("Email is required"));
     if (!/\S+@\S+\.\S+/.test(formData.email))
-      return toast.error("Invalid email format");
-    if (!formData.password) return toast.error("Password is required");
+      return toast.error(t("Invalid email format"));
+    if (!formData.password) return toast.error(t("Password is required"));
     if (formData.password.length < 6)
-      return toast.error("Password must be at least 6 characters");
+      return toast.error(t("Password must be at least 6 characters"));
 
     return true;
   };
@@ -58,9 +62,9 @@ const SignUpPage = () => {
               >
                 <MessageSquare className="size-6 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold mt-2">Create Account</h1>
+              <h1 className="text-2xl font-bold mt-2">{t("Create Account")}</h1>
               <p className="text-base-content/60">
-                Get started with your free account
+                {t("Get started with your free account")}
               </p>
             </div>
           </div>
@@ -68,7 +72,7 @@ const SignUpPage = () => {
           <form onSubmit={handleSubmit} className="space-y-6 mb-4">
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Full Name</span>
+                <span className="label-text font-medium">{t("Full Name")}</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -89,7 +93,7 @@ const SignUpPage = () => {
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Email</span>
+                <span className="label-text font-medium">{t("Email")}</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -109,7 +113,7 @@ const SignUpPage = () => {
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Password</span>
+                <span className="label-text font-medium">{t("Password")}</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -149,16 +153,16 @@ const SignUpPage = () => {
                   Loading...
                 </>
               ) : (
-                "Create Account"
+                t("Create Account")
               )}
             </button>
           </form>
 
           <div className="text-center">
             <p className="text-base-content/60">
-              Already have an account?{" "}
+              {t("Already have an account")}?{" "}
               <Link to="/login" className="link link-primary">
-                Sign in
+                {t("Sign in")}
               </Link>
             </p>
           </div>
@@ -167,8 +171,10 @@ const SignUpPage = () => {
 
       {/* right side */}
       <AuthImagePattern
-        title="Join our community"
-        subtitle="Connect with friends, share moments, and stay in touch with your loved ones."
+        title={`${t("Join our community")}!`}
+        subtitle={`${t(
+          "Connect with friends, share moments, and stay in touch with your loved ones"
+        )}.`}
       />
     </div>
   );

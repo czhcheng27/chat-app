@@ -14,7 +14,7 @@
   "Password": "密码",
   "Sign in": "登录",
   "Don't have an account": "还没有账户",
-  "Create account": "创建账户",
+  "Create Account": "创建账户",
   "Sign in to continue your conversations and catch up with your messages": "登录以继续你的对话并查看你的消息",
   "Get started with your free account": "立即开启你的免费账户体验",
   "Full Name": "全名",
@@ -31,5 +31,11 @@
   "Active": "已激活",
   "Logout": "退出",
   "Are you sure to log out": "你确定要退出登录吗",
-  "Cancel": "取消"
+  "Cancel": "取消",
+  "Type a message": "输入信息",
+  "Full name is required": "全名不能为空",
+  "Email is required": "邮箱不能为空",
+  "Invalid email format": "无效的电子邮件格式",
+  "Password is required": "密码不能为空",
+  "Password must be at least 6 characters": "密码长度需不少于 6 个字符"
 }

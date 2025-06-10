@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import toast from "react-hot-toast";
 import { Image, Send, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useChatStore } from "../store/useChatStore";
 
 const MessageInput = () => {
@@ -8,6 +9,8 @@ const MessageInput = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { sendMessage } = useChatStore();
+
+  const { t } = useTranslation();
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,7 +78,7 @@ const MessageInput = () => {
           <input
             type="text"
             className="w-full input input-bordered rounded-lg input-sm sm:input-md"
-            placeholder="Type a message..."
+            placeholder={`${t("Type a message")}...`}
             value={text}
             onChange={(e) => setText(e.target.value)}
           />

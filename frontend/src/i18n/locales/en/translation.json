@@ -14,7 +14,7 @@
   "Password": "Password",
   "Sign in": "Sign in",
   "Don't have an account": "Don't have an account",
-  "Create account": "Create account",
+  "Create Account": "Create Account",
   "Sign in to continue your conversations and catch up with your messages": "Sign in to continue your conversations and catch up with your messages",
   "Get started with your free account": "Get started with your free account",
   "Full Name": "Full Name",
@@ -31,5 +31,11 @@
   "Active": "Active",
   "Logout": "Logout",
   "Are you sure to log out": "Are you sure to log out",
-  "Cancel": "Cancel"
+  "Cancel": "Cancel",
+  "Type a message": "Type a message",
+  "Full name is required": "Full name is required",
+  "Email is required": "Email is required",
+  "Invalid email format": "Invalid email format",
+  "Password is required": "Password is required",
+  "Password must be at least 6 characters": "Password must be at least 6 characters"
 }

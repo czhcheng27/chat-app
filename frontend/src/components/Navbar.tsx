@@ -175,16 +175,16 @@ const Navbar = () => {
             {/* Logout Modal Content */}
             <dialog id="navbar_logout_modal" className="modal transition-none">
               <div className="modal-box">
-                <h3 className="font-bold text-lg">Logout!</h3>
-                <p className="py-4">Are you sure to log out?</p>
+                <h3 className="font-bold text-lg">{t("Logout")}!</h3>
+                <p className="py-4">{t("Are you sure to log out")}?</p>
                 <div className="modal-action">
                   <form method="dialog">
-                    <button className="btn btn-sm">Cancel</button>
+                    <button className="btn btn-sm">{t("Cancel")}</button>
                     <button
                       className="btn btn-sm btn-error ml-2"
                       onClick={logout}
                     >
-                      Logout
+                      {t("Logout")}
                     </button>
                   </form>
                 </div>
