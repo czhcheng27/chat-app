@@ -162,3 +162,65 @@ setSelectedUser: (selectedUser) => {
     });
   },
 ```
+
+// ---------------------------------------------------------------------------------------------
+
+5、未读数量的实时更新
+A: 纯前端的活：删除原先 useChatStore 内的 subscribeToMessages， unsubscribeFromMessages， socket.on("newMessage" 的监听不在放在 subscribeToMessages 里，
+因为 ✅ 当前没有选中用户时 ChatContainer 不渲染，subscribeToMessages 没有被调用，导致 socket 没有监听 newMessage，因此 Sidebar 上无法实时更新 unreadCount。
+
+✅ 正确做法：socket.on("newMessage") 的注册应该 全局注册一次
+在 useChatStore.ts 里建一个专门的监听函数 initMessageListener
+
+```js
+initMessageListener: () => {
+  const socket = useAuthStore.getState().socket;
+  if (!socket) return;
+
+  // 防止重复监听
+  socket.off("newMessage");
+
+  socket.on("newMessage", (newMessage: Message) => {
+    const { selectedUser, messages, users } = get();
+
+    const isFromSelectedUser = selectedUser?._id === newMessage.senderId;
+
+    if (isFromSelectedUser) {
+      // 正在和这个用户聊天，追加消息
+      set({ messages: [...messages, newMessage] });
+    } else {
+      // 更新 sidebar 的 unreadCount
+      const updatedUsers = users.map((user) =>
+        user._id === newMessage.senderId
+          ? { ...user, unreadCount: (user.unreadCount || 0) + 1 }
+          : user
+      );
+      set({ users: updatedUsers });
+    }
+  });
+},
+
+export default function App() {
+  const initMessageListener = useChatStore((s) => s.initMessageListener);
+  const socket = useAuthStore((s) => s.socket); // ✅ 响应式拿 socket
+
+  useEffect(() => {
+    if (socket) {
+      initMessageListener();
+    }
+  }, [socket]); // ✅ 监听 socket 变化
+}
+```
+
+✅ 为什么这么做更合理？
+socket.on("newMessage") 是全局事件监听，不应该绑定在某个聊天窗口上（那是局部逻辑）
+
+当前用户即使没有打开聊天窗口，Sidebar 的用户列表仍应实时显示 unreadCount
+
+// ---------------------------------------------------------------------------------------------
+
+6、当前用户选择一个还没发过消息的联系人（如 A），向 A 发送一条消息，发送成功后，左边列表没有更新排序或显示时间。
+S:
+
+1. 提炼排序逻辑为一个公共函数 sortUsers(users: AuthUser[])；满足排序逻辑的函数，这样在 connectSocket、sendMessage 等地方都能一致地调用排序。
+2. sendMessage 中发送成功后更新 users 并调用 sortUsers
