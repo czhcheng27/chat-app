@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Loader } from "lucide-react";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
@@ -13,6 +13,13 @@ const ChatContainer = () => {
 
   const messageEndRef = useRef<HTMLDivElement | null>(null);
 
+  // 滚动到底部函数，useCallback 保持引用稳定
+  const scrollToBottom = useCallback(() => {
+    if (messageEndRef.current) {
+      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
+
   useEffect(() => {
     if (selectedUser?._id) {
       getMessages(selectedUser._id);
@@ -20,10 +27,8 @@ const ChatContainer = () => {
   }, [selectedUser?._id, getMessages]);
 
   useEffect(() => {
-    if (messageEndRef.current && messages) {
-      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
+    scrollToBottom();
+  }, [messages, isMessagesLoading, scrollToBottom]);
 
   return (
     <div className="flex-1 flex flex-col overflow-auto">
@@ -65,6 +70,10 @@ const ChatContainer = () => {
                       src={image}
                       alt="Attachment"
                       className="sm:max-w-[200px] rounded-md mb-2"
+                      onLoad={() => {
+                        // 图片加载完成后再滚动到底部
+                        scrollToBottom();
+                      }}
                     />
                   )}
                   {text && <p>{text}</p>}
