@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 import type { AuthState, AuthUser, LoginData, SignupData } from "../types/auth";
 import api from "../lib/apiClient";
 import { useChatStore } from "./useChatStore";
+import { sortUsers } from "../lib/utils";
 
 const BASE_URL =
   import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
@@ -113,27 +114,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (!existing) mergedUsers.push(user);
       });
 
-      const updated = mergedUsers
-        .map((user) => ({
-          ...user,
-          isOnline: onlineUsers.some((u) => u._id === user._id),
-        }))
-        .sort((a, b) => {
-          if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
-
-          const aTime = a.lastMessageAt
-            ? new Date(a.lastMessageAt).getTime()
-            : 0;
-          const bTime = b.lastMessageAt
-            ? new Date(b.lastMessageAt).getTime()
-            : 0;
-          if (aTime !== bTime) return bTime - aTime;
-
-          return a.fullName.localeCompare(b.fullName);
-        });
+      const sorted = sortUsers(
+        mergedUsers,
+        onlineUsers.map((u) => u._id)
+      );
 
       set({ onlineUsers: onlineUsers.map((u) => u._id) });
-      setUsers(updated);
+      setUsers(sorted);
     });
   },
 

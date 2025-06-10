@@ -3,6 +3,7 @@ import api from "../lib/apiClient";
 import type { ChatState, Message } from "../types/chat";
 import type { AuthUser } from "../types/auth";
 import { useAuthStore } from "./useAuthStore";
+import { sortUsers } from "../lib/utils";
 
 export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
@@ -29,7 +30,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   getUsers: async () => {
     set({ isUsersLoading: true });
     const res = await api.get<AuthUser[]>("/messages/users");
-    res && set({ users: res });
+    if (res) set({ users: res });
     set({ isUsersLoading: false });
   },
 
@@ -38,7 +39,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     // 1. 请求聊天记录
     const res = await api.get<Message[]>(`/messages/${userId}`);
-    res && set({ messages: res });
+    if (res) set({ messages: res });
 
     // 2. 同时将该用户发来的消息标记为已读
     await api.patch(`/messages/mark-as-read/${userId}`);
@@ -47,12 +48,32 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   sendMessage: async (messageData) => {
-    const { selectedUser, messages } = get();
+    const { selectedUser, messages, users } = get();
     const res = await api.post<Message>(
       `/messages/send/${selectedUser?._id}`,
       messageData
     );
-    if (res) set({ messages: [...messages, res] });
+
+    if (!res) return;
+
+    set({ messages: [...messages, res] });
+
+    // 更新 sidebar 中对应用户的 lastMessageAt
+    const updatedUsers = [...users];
+    const index = updatedUsers.findIndex((u) => u._id === selectedUser?._id);
+
+    if (index !== -1) {
+      updatedUsers[index] = {
+        ...updatedUsers[index],
+        lastMessageAt: res.createdAt,
+      };
+    }
+
+    // 使用 onlineUsers 排序
+    const { onlineUsers } = useAuthStore.getState();
+    const sorted = sortUsers(updatedUsers, onlineUsers);
+
+    set({ users: sorted });
   },
 
   initMessageListener: () => {
