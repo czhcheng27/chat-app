@@ -224,3 +224,28 @@ S:
 
 1. 提炼排序逻辑为一个公共函数 sortUsers(users: AuthUser[])；满足排序逻辑的函数，这样在 connectSocket、sendMessage 等地方都能一致地调用排序。
 2. sendMessage 中发送成功后更新 users 并调用 sortUsers
+
+// ---------------------------------------------------------------------------------------------
+
+7、发送的图片无法自动滚动到底部
+R: 图片是异步加载的，初始 img 元素加载时还没渲染完成（图片大小未知），scrollIntoView 发生得太早，页面内容高度还没完全撑开，所以滚动距离不足。
+A: 等待图片加载完成后再滚动到底部：给每个图片的 onLoad 事件里，触发滚动到底部操作，确保图片加载完，内容高度确定，再滚。
+
+```js
+// 滚动到底部函数，useCallback 保持引用稳定
+const scrollToBottom = useCallback(() => {
+  if (messageEndRef.current) {
+    messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }
+}, []);
+
+<img
+  src={image}
+  alt="Attachment"
+  className="sm:max-w-[200px] rounded-md mb-2"
+  onLoad={() => {
+    // 图片加载完成后再滚动到底部
+    scrollToBottom();
+  }}
+/>;
+```
