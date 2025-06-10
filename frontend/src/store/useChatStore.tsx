@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import api from "../lib/apiClient";
-import type { ChatState, Message } from "../types/chat";
-import type { AuthUser } from "../types/auth";
+import type { ChatState, Message, SendMsg } from "../types/chat";
+import type { AuthUser, LastMessage } from "../types/auth";
 import { useAuthStore } from "./useAuthStore";
 import { sortUsers } from "../lib/utils";
 
@@ -62,10 +62,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const updatedUsers = [...users];
     const index = updatedUsers.findIndex((u) => u._id === selectedUser?._id);
 
+    const extractLastMessage = (msgData: SendMsg): LastMessage => {
+      if (msgData.image) {
+        return { type: "image", content: "" };
+      }
+      return { type: "text", content: msgData.text ?? "" };
+    };
+
     if (index !== -1) {
       updatedUsers[index] = {
         ...updatedUsers[index],
         lastMessageAt: res.createdAt,
+        lastMessage: extractLastMessage(messageData),
       };
     }
 
