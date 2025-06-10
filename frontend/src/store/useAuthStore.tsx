@@ -75,6 +75,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // 请求成功，做成功逻辑
       set({ authUser: null });
       get().disconnectSocket();
+      useChatStore.getState().setSelectedUser(null)
     }
   },
 
