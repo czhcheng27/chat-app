@@ -13,16 +13,14 @@ export const getUsersForSidebar = async (req, res) => {
       "-password"
     );
 
-    // 查询每个用户和我之间的最新消息时间
+    // 查询每个用户和我之间的最新消息时间（包括内容）
     const latestMessages = await Message.aggregate([
       {
         $match: {
           $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
         },
       },
-      {
-        $sort: { createdAt: -1 },
-      },
+      { $sort: { createdAt: -1 } },
       {
         $group: {
           _id: {
@@ -33,14 +31,29 @@ export const getUsersForSidebar = async (req, res) => {
             ],
           },
           lastMessageAt: { $first: "$createdAt" },
+          lastMessageText: { $first: "$text" },
+          lastMessageImage: { $first: "$image" },
         },
       },
     ]);
 
-    // 把结果转成 Map 形式：{ userId: lastMessageAt }
-    const messageTimeMap = {};
+    const messageInfoMap = {};
     latestMessages.forEach((m) => {
-      messageTimeMap[m._id.toString()] = m.lastMessageAt;
+      let type = null;
+      let content = null;
+
+      if (m.lastMessageImage) {
+        type = "image";
+        content = ""; // 图片无需预览内容
+      } else if (m.lastMessageText) {
+        type = "text";
+        content = m.lastMessageText;
+      }
+
+      messageInfoMap[m._id.toString()] = {
+        lastMessageAt: m.lastMessageAt,
+        lastMessage: type ? { type, content } : null,
+      };
     });
 
     /**
@@ -60,14 +73,18 @@ export const getUsersForSidebar = async (req, res) => {
           isRead: false,
         });
 
+        const msgInfo = messageInfoMap[user._id.toString()] || {};
+
         return {
           ...user.toObject(),
-          lastMessageAt: messageTimeMap[user._id.toString()] || null,
+          lastMessageAt: msgInfo.lastMessageAt || null,
+          lastMessage: msgInfo.lastMessage || null,
           isOnline: Object.keys(userSocketMap).includes(user._id.toString()),
           unreadCount,
         };
       })
     );
+
     const sortedUsers = usersWithExtras.sort((a, b) => {
       if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
 

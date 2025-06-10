@@ -54,6 +54,7 @@ const Sidebar = () => {
             profilePic,
             lastMessageAt,
             unreadCount,
+            lastMessage,
           } = user;
           return (
             <button
@@ -98,8 +99,12 @@ const Sidebar = () => {
               {/* User info - only visible on larger screens */}
               <div className="hidden lg:block text-left min-w-0">
                 <div className="font-medium truncate">{fullName}</div>
-                <div className="text-sm text-zinc-400">
-                  {isOnline ? "Online" : "Offline"}
+                <div className="text-sm text-zinc-400 h-5 truncate max-w-[160px]">
+                  {lastMessage
+                    ? lastMessage.type === "image"
+                      ? "[image]"
+                      : lastMessage.content
+                    : ""}
                 </div>
               </div>
 

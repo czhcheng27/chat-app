@@ -24,8 +24,12 @@ export interface AuthUser {
   profilePic: string;
   createdAt: string;
   isOnline: boolean;
-  lastMessageAt: string;
   unreadCount: number;
+  lastMessageAt: string;
+  lastMessage: {
+    type: "text" | "image";
+    content: "string";
+  };
 }
 
 export interface SignupData {
