@@ -1,13 +1,30 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/useAuthStore";
-import { LogOut, MessageSquare, Settings, User, Check } from "lucide-react";
+import {
+  LogOut,
+  MessageSquare,
+  Settings,
+  User,
+  Check,
+  Globe,
+} from "lucide-react";
 import ProfilePage from "../pages/ProfilePage";
 import { useThemeStore } from "../store/useThemeStore";
+import { useLanguageStore } from "../store/useLanguageStore";
 import { THEMES } from "../constants/theme";
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
+  const { language, setLanguage } = useLanguageStore();
+
+  const { t, i18n } = useTranslation();
+
+  const changeLanguage = (lng: "en" | "zh") => {
+    i18n.changeLanguage(lng);
+    setLanguage(lng);
+  };
 
   const openLogoutModal = (id: string) => {
     const modal = document.getElementById(id) as HTMLDialogElement;
@@ -29,22 +46,23 @@ const Navbar = () => {
               <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
                 <MessageSquare className="w-5 h-5 text-primary" />
               </div>
-              <h1 className="text-lg font-bold">Chatty</h1>
+              <h1 className="text-lg font-bold">{t("Cheng's Chatty Room")}</h1>
             </Link>
           </div>
 
           <div className="flex items-center gap-2">
+            {/* theme sction */}
             <div className={`dropdown dropdown-hover dropdown-end block`}>
               <div tabIndex={0} className="btn btn-sm m-1">
                 <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">Theme</span>
+                <span className="hidden sm:inline">{t("Theme")}</span>
               </div>
               <div
                 tabIndex={0}
                 className="dropdown-content menu bg-base-200 text-base-content rounded-box h-[30.5rem] max-h-[calc(100vh-8.6rem)] overflow-y-auto border border-white/5 shadow-2xl outline-1 outline-black/5"
               >
                 <ul className="menu">
-                  <li className="menu-title text-xs">Theme</li>
+                  <li className="menu-title text-xs">{t("Theme")}</li>
                   {THEMES.map((t) => (
                     <li key={t}>
                       <button
@@ -74,6 +92,43 @@ const Navbar = () => {
               </div>
             </div>
 
+            {/* i18n section */}
+            <div className="dropdown dropdown-hover dropdown-center overflow-visible mr-3">
+              <div tabIndex={0} className="btn btn-sm m-1">
+                <Globe className="w-4 h-4" />
+                <span className="hidden sm:inline">{t("Language")}</span>
+              </div>
+              <ul
+                tabIndex={2}
+                className="dropdown-content menu mt-0 bg-base-200 rounded-box z-1 w-full border-white/5 shadow-2xl"
+              >
+                <li
+                  className="flex justify-center"
+                  onClick={() => changeLanguage("en")}
+                >
+                  <a>EN</a>
+                  {language === "en" ? (
+                    <Check
+                      className="absolute right-1 p-0"
+                      style={{ width: 16, height: 16 }}
+                    />
+                  ) : null}
+                </li>
+                <li
+                  className="flex justify-center"
+                  onClick={() => changeLanguage("zh")}
+                >
+                  <a>中文</a>
+                  {language === "zh" ? (
+                    <Check
+                      className="absolute right-1 p-0"
+                      style={{ width: 16, height: 16 }}
+                    />
+                  ) : null}
+                </li>
+              </ul>
+            </div>
+
             {authUser && (
               <div className="dropdown dropdown-hover dropdown-center relative overflow-visible mr-3">
                 <div className="flex items-center gap-2">
@@ -89,18 +144,18 @@ const Navbar = () => {
                 </div>
                 <ul
                   tabIndex={1}
-                  className="dropdown-content menu mt-0.5 bg-base-200 rounded-box z-1 w-full border-white/5 shadow-2xl"
+                  className="dropdown-content menu mt-0 bg-base-200 rounded-box z-1 w-35 border-white/5 shadow-2xl"
                 >
                   <li onClick={() => openLogoutModal("navbar_profile_modal")}>
                     <a className="pl-1">
                       <User className="size-4" />
-                      Profile
+                      {t("Profile")}
                     </a>
                   </li>
                   <li onClick={() => openLogoutModal("navbar_logout_modal")}>
                     <a className="pl-1">
                       <LogOut className="size-4" />
-                      Logout
+                      {t("Logout")}
                     </a>
                   </li>
                 </ul>
