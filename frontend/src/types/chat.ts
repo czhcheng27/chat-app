@@ -13,7 +13,7 @@ export interface ChatState {
   setSelectedUser: (data: AuthUser | null) => void;
   initMessageListener: () => void;
 }
-interface SendMsg {
+export interface SendMsg {
   text: string;
   image?: string | null;
 }

@@ -26,11 +26,13 @@ export interface AuthUser {
   isOnline: boolean;
   unreadCount: number;
   lastMessageAt: string;
-  lastMessage: {
-    type: "text" | "image";
-    content: "string";
-  };
+  lastMessage: LastMessage | null;
 }
+
+export type LastMessage = {
+  type: "text" | "image";
+  content: string;
+};
 
 export interface SignupData {
   fullName: string;
