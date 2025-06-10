@@ -37,5 +37,13 @@
   "Email is required": "邮箱不能为空",
   "Invalid email format": "无效的电子邮件格式",
   "Password is required": "密码不能为空",
-  "Password must be at least 6 characters": "密码长度需不少于 6 个字符"
+  "Password must be at least 6 characters": "密码长度需不少于 6 个字符",
+  "Account created successfully": "注册成功",
+  "Signup failed": "注册失败",
+  "Logged in successfully": "登录成功",
+  "Login failed": "登录失败",
+  "Logged out successfully": "退出登录成功",
+  "Logout failed": "退出登录失败",
+  "Profile updated successfully": "个人资料更新成功",
+  "Failed to update profile": "个人资料更新失败"
 }

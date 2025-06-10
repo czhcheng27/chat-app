@@ -37,5 +37,13 @@
   "Email is required": "Email is required",
   "Invalid email format": "Invalid email format",
   "Password is required": "Password is required",
-  "Password must be at least 6 characters": "Password must be at least 6 characters"
+  "Password must be at least 6 characters": "Password must be at least 6 characters",
+  "Account created successfully": "Account created successfully",
+  "Signup failed": "Signup failed",
+  "Logged in successfully": "Logged in successfully",
+  "Login failed": "Login failed",
+  "Logged out successfully": "Logged out successfully",
+  "Logout failed": "Logout failed",
+  "Profile updated successfully": "Profile updated successfully",
+  "Failed to update profile": "Failed to update profile"
 }
