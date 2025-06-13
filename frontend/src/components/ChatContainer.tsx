@@ -16,7 +16,7 @@ const ChatContainer = () => {
   // 滚动到底部函数，useCallback 保持引用稳定
   const scrollToBottom = useCallback(() => {
     if (messageEndRef.current) {
-      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+      messageEndRef.current.scrollIntoView({ behavior: "auto" });
     }
   }, []);
 
