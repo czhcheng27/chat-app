@@ -96,18 +96,33 @@ export const useChatStore = create<ChatState>((set, get) => ({
       console.log(`newMessage`, newMessage, "selectedUser");
       const isFromSelectedUser = selectedUser?._id === newMessage.senderId;
 
+      const lastMessagePreview: AuthUser["lastMessage"] = newMessage.image
+        ? { type: "image", content: "" }
+        : { type: "text", content: newMessage.text ?? "" };
+
       if (isFromSelectedUser) {
         // 正在和这个用户聊天，追加消息
         set({ messages: [...messages, newMessage] });
-      } else {
-        // 更新 sidebar 的 unreadCount
-        const updatedUsers = users.map((user) =>
-          user._id === newMessage.senderId
-            ? { ...user, unreadCount: (user.unreadCount || 0) + 1 }
-            : user
-        );
-        set({ users: updatedUsers });
       }
+
+      // 不论是否正在聊天，都更新 sidebar 用户列表
+      const updatedUsers = users.map((user) => {
+        if (user._id === newMessage.senderId) {
+          return {
+            ...user,
+            unreadCount: isFromSelectedUser ? 0 : (user.unreadCount || 0) + 1,
+            lastMessageAt: newMessage.createdAt,
+            lastMessage: lastMessagePreview,
+          };
+        }
+        return user;
+      });
+
+      const { onlineUsers } = useAuthStore.getState();
+      const sorted = sortUsers(updatedUsers, onlineUsers);
+
+      set({ users: sorted });
+
     });
   },
 }));
