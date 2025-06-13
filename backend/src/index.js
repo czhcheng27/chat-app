@@ -2,21 +2,19 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import { fileURLToPath } from 'url';
+
 import path from "path";
 
 import { connectDB } from "./lib/db.js";
 
 import authRoutes from "./routes/auth.route.js";
-import aiRoutes from "./ai/routes/aiRoutes.js";
 import messageRoutes from "./routes/message.route.js";
 import { app, server } from "./lib/socket.js";
 
 dotenv.config();
 
 const PORT = process.env.PORT;
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.resolve();
 
 const allowedOrigins = [
   "http://localhost:5173", // Vite
@@ -40,7 +38,6 @@ app.use(cors({
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
-app.use("/api/ai", aiRoutes);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
