@@ -26,12 +26,6 @@ const allowedOrigins = [
 
 app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
-// app.use(
-//   cors({
-//     origin: "http://localhost:5173",
-//     credentials: true,
-//   })
-// );
 app.use(cors({
   origin: function(origin, callback) {
     // 如果 origin 是 undefined（比如 curl、Postman），也允许
