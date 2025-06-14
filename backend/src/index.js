@@ -21,27 +21,29 @@ const allowedOrigins = [
   "http://localhost:5173", // Vite
   "http://localhost:3000", // CRA 或其他
   "https://czhcheng27.github.io",
+  "https://chat-app-244z.onrender.com",
 ];
 
 app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  })
-);
-// app.use(cors({
-//   origin: function(origin, callback){
-//     if(!origin) return callback(null, true); // 允许非浏览器请求
-//     if(allowedOrigins.indexOf(origin) !== -1){
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true,
-// }));
+// app.use(
+//   cors({
+//     origin: "http://localhost:5173",
+//     credentials: true,
+//   })
+// );
+app.use(cors({
+  origin: function(origin, callback){
+    // Render 或 Postman 请求时，origin 可能是 undefined，要允许
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn("Blocked by CORS: ", origin);
+      callback(null, false); // ⚠️ 不抛错，只是拒绝跨域
+    }
+  },
+  credentials: true,
+}));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
