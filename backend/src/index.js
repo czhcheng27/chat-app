@@ -14,7 +14,7 @@ import { app, server } from "./lib/socket.js";
 
 dotenv.config();
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
 
 const allowedOrigins = [
@@ -33,13 +33,13 @@ app.use(cookieParser());
 //   })
 // );
 app.use(cors({
-  origin: function(origin, callback){
-    // Render 或 Postman 请求时，origin 可能是 undefined，要允许
+  origin: function(origin, callback) {
+    // 如果 origin 是 undefined（比如 curl、Postman），也允许
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn("Blocked by CORS: ", origin);
-      callback(null, false); // ⚠️ 不抛错，只是拒绝跨域
+      console.warn("CORS blocked:", origin);
+      callback(null, false); // 不抛错，防止崩服务
     }
   },
   credentials: true,

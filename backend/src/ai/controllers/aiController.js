@@ -10,50 +10,25 @@ export const handleAiChatStream = async (req, res) => {
   });
 
   try {
-    const response = await openai.createChatCompletion(
-      {
-        model: "gpt-3.5-turbo",
-        messages,
-        stream: true,
-      },
-      { responseType: "stream" }
-    );
+    const stream = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages,
+      stream: true,
+    });
 
-    response.data.on("data", (chunk) => {
-      const lines = chunk
-        .toString("utf8")
-        .split("\n")
-        .filter((line) => line.trim() !== "");
-
-      for (const line of lines) {
-        const message = line.replace(/^data: /, "");
-        if (message === "[DONE]") {
-          res.write(`data: [DONE]\n\n`);
-          res.end();
-          return;
-        }
-        try {
-          const parsed = JSON.parse(message);
-          const content = parsed.choices?.[0]?.delta?.content;
-          if (content) {
-            res.write(`data: ${JSON.stringify({ content })}\n\n`);
-          }
-        } catch {
-          // 忽略解析错误
-        }
+    for await (const chunk of stream) {
+      const content = chunk.choices?.[0]?.delta?.content;
+      if (content) {
+        res.write(`data: ${JSON.stringify({ content })}\n\n`);
       }
-    });
+    }
 
-    response.data.on("end", () => {
-      res.end();
-    });
-
-    response.data.on("error", (err) => {
-      console.error("Stream error:", err);
-      res.end();
-    });
+    res.write(`data: [DONE]\n\n`);
+    res.end();
   } catch (err) {
     console.error("OpenAI error:", err);
-    res.status(500).json({ error: err.message });
+    if (!res.headersSent) {
+      res.status(500).json({ error: err.message });
+    }
   }
 };
