@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
+import "./i18n";
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
 import SignUpPage from "./pages/SignUpPage";
@@ -10,10 +11,16 @@ import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
+import { useChatStore } from "./store/useChatStore";
 
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  const { socket, authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  const { initMessageListener } = useChatStore();
   const { theme } = useThemeStore();
+
+  useEffect(() => {
+    if (socket) initMessageListener();
+  }, [initMessageListener, socket]);
 
   useEffect(() => {
     checkAuth();

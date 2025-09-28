@@ -8,29 +8,43 @@ import path from "path";
 import { connectDB } from "./lib/db.js";
 
 import authRoutes from "./routes/auth.route.js";
+import aiRoutes from "./ai/routes/aiRoutes.js";
 import messageRoutes from "./routes/message.route.js";
 import { app, server } from "./lib/socket.js";
 
 dotenv.config();
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
+
+const allowedOrigins = [
+  "http://localhost:5173", // Vite
+  "http://localhost:3000", // CRA 或其他
+  "https://czhcheng27.github.io",
+  "https://chat-app-244z.onrender.com",
+  "https://chat-app-tan-chi.vercel.app",
+];
 
 app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:3000",
-      "https://chat-app-tan-chi.vercel.app",
-    ],
+    origin: function (origin, callback) {
+      // 如果 origin 是 undefined（比如 curl、Postman），也允许
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn("CORS blocked:", origin);
+        callback(null, false); // 不抛错，防止崩服务
+      }
+    },
     credentials: true,
   })
 );
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/ai", aiRoutes);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));

@@ -29,6 +29,8 @@ socket.on("newUserOnline", async ({ userId }) => {
 所以最终决定在 socket.on("getOnlineUsers", () => {}) 在这里当拿到 onlineUserIds 之后，对已有的 user list 进行处理，在线靠前，最近聊天靠前，按姓名排序等，
 这样可以避免调用接口，以局部插入新用户，手动将这个新用户对象插入到 users 列表中，并排序，从而避免 UI 重置和闪烁。
 
+// ---------------------------------------------------------------------------------------------
+
 2、防止抖动：当用户刷新页面时会先 disconnect 然后再再次 connect，这样的话其他用户的 user list 就会出现此用户 offline 然后再马上 online 的情况，UI 会有抖动。
 
 ```js
@@ -43,6 +45,8 @@ socket.on("disconnect", () => {
   }, 1500);
 });
 ```
+
+// ---------------------------------------------------------------------------------------------
 
 3、之前 io.emit("getOnlineUsers", Object.keys(userSocketMap)); 逻辑只对“数据库已有用户”登录时有效，对“新注册用户”首次登录，其他人列表中不会实时出现这个新用户，需要刷新。
 🧠 问题根本原因
@@ -130,3 +134,118 @@ socket.on("getOnlineUsers", (onlineUsers) => {
 ```
 
 Conclusion: Problem: 新注册用户上线，旧用户看不到; Reason: 后端只发 ID，前端列表没这人; Solve: 后端发完整用户对象数组，前端合并进去
+
+// ---------------------------------------------------------------------------------------------
+
+4、统计未读数量
+A:
+后端：1、后端新增接口 router.patch("/mark-as-read/:id", protectRoute, markMessagesAsRead);
+2、同时新增 getUsersForSidebar 内 unreadCount 的数量获取， 3、及为 messageSchema 新增 isRead 字段
+这样当 sidebar 组件调用接口获取 user 列表时，返回的数据是带有 unreadCount 的统计的。
+
+前端：
+在 useChatStore 内的 getMessages 方法中，除了请求当前选中 user 的对话数据外，
+还进行 api.patch(`/messages/mark-as-read/${userId}`) 请求，将数据库内的 isRead 置为 true 以及更新 unreadCount 数量。
+另一方面，前端也需进行无感更新，即当点击选中列表中的 user 时，setSelectedUser 方法不光要设置 selectUser， 同时也要清除 unreadCount
+
+```js
+setSelectedUser: (selectedUser) => {
+    const { users } = get();
+    // 清除 unreadCount
+    const updatedUsers = users.map((user) =>
+      user._id === selectedUser?._id ? { ...user, unreadCount: 0 } : user
+    );
+
+    set({
+      selectedUser,
+      users: updatedUsers,
+    });
+  },
+```
+
+// ---------------------------------------------------------------------------------------------
+
+5、未读数量的实时更新
+A: 纯前端的活：删除原先 useChatStore 内的 subscribeToMessages， unsubscribeFromMessages， socket.on("newMessage" 的监听不在放在 subscribeToMessages 里，
+因为 ✅ 当前没有选中用户时 ChatContainer 不渲染，subscribeToMessages 没有被调用，导致 socket 没有监听 newMessage，因此 Sidebar 上无法实时更新 unreadCount。
+
+✅ 正确做法：socket.on("newMessage") 的注册应该 全局注册一次
+在 useChatStore.ts 里建一个专门的监听函数 initMessageListener
+
+```js
+initMessageListener: () => {
+  const socket = useAuthStore.getState().socket;
+  if (!socket) return;
+
+  // 防止重复监听
+  socket.off("newMessage");
+
+  socket.on("newMessage", (newMessage: Message) => {
+    const { selectedUser, messages, users } = get();
+
+    const isFromSelectedUser = selectedUser?._id === newMessage.senderId;
+
+    if (isFromSelectedUser) {
+      // 正在和这个用户聊天，追加消息
+      set({ messages: [...messages, newMessage] });
+    } else {
+      // 更新 sidebar 的 unreadCount
+      const updatedUsers = users.map((user) =>
+        user._id === newMessage.senderId
+          ? { ...user, unreadCount: (user.unreadCount || 0) + 1 }
+          : user
+      );
+      set({ users: updatedUsers });
+    }
+  });
+},
+
+export default function App() {
+  const initMessageListener = useChatStore((s) => s.initMessageListener);
+  const socket = useAuthStore((s) => s.socket); // ✅ 响应式拿 socket
+
+  useEffect(() => {
+    if (socket) {
+      initMessageListener();
+    }
+  }, [socket]); // ✅ 监听 socket 变化
+}
+```
+
+✅ 为什么这么做更合理？
+socket.on("newMessage") 是全局事件监听，不应该绑定在某个聊天窗口上（那是局部逻辑）
+
+当前用户即使没有打开聊天窗口，Sidebar 的用户列表仍应实时显示 unreadCount
+
+// ---------------------------------------------------------------------------------------------
+
+6、当前用户选择一个还没发过消息的联系人（如 A），向 A 发送一条消息，发送成功后，左边列表没有更新排序或显示时间。
+S:
+
+1. 提炼排序逻辑为一个公共函数 sortUsers(users: AuthUser[])；满足排序逻辑的函数，这样在 connectSocket、sendMessage 等地方都能一致地调用排序。
+2. sendMessage 中发送成功后更新 users 并调用 sortUsers
+
+// ---------------------------------------------------------------------------------------------
+
+7、发送的图片无法自动滚动到底部
+R: 图片是异步加载的，初始 img 元素加载时还没渲染完成（图片大小未知），scrollIntoView 发生得太早，页面内容高度还没完全撑开，所以滚动距离不足。
+A: 等待图片加载完成后再滚动到底部：给每个图片的 onLoad 事件里，触发滚动到底部操作，确保图片加载完，内容高度确定，再滚。
+
+```js
+// 滚动到底部函数，useCallback 保持引用稳定
+const scrollToBottom = useCallback(() => {
+  if (messageEndRef.current) {
+    messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }
+}, []);
+
+<img
+  src={image}
+  alt="Attachment"
+  className="sm:max-w-[200px] rounded-md mb-2"
+  onLoad={() => {
+    // 图片加载完成后再滚动到底部
+    scrollToBottom();
+  }}
+/>;
+```

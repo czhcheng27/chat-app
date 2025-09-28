@@ -11,10 +11,9 @@ export interface ChatState {
   getMessages: (data: string) => Promise<void>;
   sendMessage: (data: SendMsg) => Promise<void>;
   setSelectedUser: (data: AuthUser | null) => void;
-  subscribeToMessages: () => void;
-  unsubscribeFromMessages: () => void;
+  initMessageListener: () => void;
 }
-interface SendMsg {
+export interface SendMsg {
   text: string;
   image?: string | null;
 }
