@@ -19,25 +19,29 @@ const __dirname = path.resolve();
 
 const allowedOrigins = [
   "http://localhost:5173", // Vite
+  "http://localhost:5174", // Vite
   "http://localhost:3000", // CRA 或其他
   "https://czhcheng27.github.io",
   "https://chat-app-244z.onrender.com",
+  "https://cheng-chat-app.up.railway.app/",
 ];
 
 app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
-app.use(cors({
-  origin: function(origin, callback) {
-    // 如果 origin 是 undefined（比如 curl、Postman），也允许
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn("CORS blocked:", origin);
-      callback(null, false); // 不抛错，防止崩服务
-    }
-  },
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // 如果 origin 是 undefined（比如 curl、Postman），也允许
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn("CORS blocked:", origin);
+        callback(null, false); // 不抛错，防止崩服务
+      }
+    },
+    credentials: true,
+  }),
+);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
@@ -51,7 +55,7 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log("server is running on PORT:" + PORT);
   connectDB();
 });
