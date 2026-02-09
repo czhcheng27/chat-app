@@ -6,7 +6,9 @@ import { useChatStore } from "./useChatStore";
 import { sortUsers } from "../lib/utils";
 
 const BASE_URL =
-  import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5001"
+    : "https://chat-app-backend-chat-app.up.railway.app";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   authUser: null,
@@ -75,7 +77,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // 请求成功，做成功逻辑
       set({ authUser: null });
       get().disconnectSocket();
-      useChatStore.getState().setSelectedUser(null)
+      useChatStore.getState().setSelectedUser(null);
     }
   },
 
@@ -100,6 +102,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       query: {
         userId: authUser._id,
       },
+      transports: ["websocket", "polling"], // 增加稳定性
+      withCredentials: true, // 必须开启，否则无法通过跨域 Cookie 校验
     });
     socket.connect();
     set({ socket });
@@ -117,7 +121,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const sorted = sortUsers(
         mergedUsers,
-        onlineUsers.map((u) => u._id)
+        onlineUsers.map((u) => u._id),
       );
 
       set({ onlineUsers: onlineUsers.map((u) => u._id) });
