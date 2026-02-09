@@ -23,7 +23,7 @@ const allowedOrigins = [
   "http://localhost:3000", // CRA 或其他
   "https://czhcheng27.github.io",
   "https://chat-app-244z.onrender.com",
-  "https://cheng-chat-app.up.railway.app/",
+  "https://cheng-chat-app.up.railway.app",
   "https://chat-app-tan-chi.vercel.app",
   "https://projects.czhcheng27.workers.dev",
 ];
