@@ -139,7 +139,7 @@ const Navbar = () => {
                     className="rounded-full object-cover w-10 h-10 cursor-pointer"
                   />
                   <div className="max-w-[12ch] truncate overflow-hidden whitespace-nowrap text-right block">
-                    {authUser?.fullName.toLocaleUpperCase()}
+                    {authUser?.fullName?.toLocaleUpperCase()}
                   </div>
                 </div>
                 <ul
