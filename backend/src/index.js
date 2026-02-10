@@ -24,6 +24,7 @@ const allowedOrigins = [
   "https://czhcheng27.github.io",
   "https://chat-app-244z.onrender.com",
   "https://cheng-chat-app.up.railway.app",
+  "https://oa-system.up.railway.app",
   "https://chat-app-tan-chi.vercel.app",
   "https://projects.czhcheng27.workers.dev",
 ];
